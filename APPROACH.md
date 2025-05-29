@@ -22,7 +22,6 @@ The preprocessing pipeline (`chunk_source_text` function) involves:
 2.  **Markdown to Plain Text Conversion**:
     *   Each segment is processed as Markdown. The `markdown-it-py` library converts the Markdown to HTML.
     *   `BeautifulSoup4` is then used to parse this HTML and extract clean, readable plain text. The `get_text(separator=" ")` method helps preserve word separation.
-    *   **Rationale for Simplicity (V9 Approach)**: Initial iterations involved complex regular expression-based stripping of metadata headers (e.g., `filename.md`, `Title:`, `URL Source:`) *before* Markdown conversion. However, empirical testing showed that this complexity did not yield significantly better validation results with the `all-MiniLM-L6-v2` model. The current, simpler approach relies on the robustness of the Markdown parser and the sentence embedding model to handle residual structural text. This "Ultra-Simple Structure-Aware Chunker (V9)" was found to be more maintainable while providing comparable performance.
 3.  **Sentence Tokenization**: The extracted plain text from each segment is tokenized into individual sentences using NLTK's `punkt` tokenizer. This breaks down the text into manageable units for embedding.
 4.  **Normalization and Filtering**:
     *   Each sentence is normalized (converted to lowercase, leading/trailing whitespace removed, newlines replaced with spaces).
