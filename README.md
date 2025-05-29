@@ -9,18 +9,6 @@ For a detailed explanation of the methodology, model choices, text processing pi
 *   Python 3.8 or higher
 *   pip (Python package installer)
 
-## Project Structure
-.
-├── app/ # Core application directory
-│ ├── data.json # Input data with records, citations, and source texts
-│ ├── output_validated.json # Output file with validation results (generated after running)
-│ └── validator.py # The main Python script for validation
-├── .venv/ # Python virtual environment directory (if created)
-├── .gitignore # Specifies intentionally untracked files by Git
-├── APPROACH.md # Detailed explanation of the project's methodology and business impact
-├── README.md # This file (you are here!)
-└── requirements.txt # Python package dependencies
-
 ## Setup and Installation
 
 1.  **Navigate to the project root directory**:
@@ -54,6 +42,18 @@ For a detailed explanation of the methodology, model choices, text processing pi
 
 4.  **NLTK Resource Download**:
     The script (`app/validator.py`) will attempt to download the necessary NLTK resources (`punkt` for sentence tokenization and `punkt_tab`) the first time it's run if they are not found. An internet connection is required for this initial download.
+
+## Configuration
+
+Key parameters for the validation script (e.g., model name, similarity thresholds, file names) can be configured by editing the `app/config.json` file. If this file is missing or a parameter is not specified, the script will use sensible default values.
+
+The following parameters can be configured:
+*   `model_name`: The sentence transformer model to use (default: "all-MiniLM-L6-v2").
+*   `similarity_threshold`: The primary similarity score (0.0-1.0) above which a citation is considered "likely true" (default: 0.6).
+*   `min_citation_length_words`: Minimum number of words for a citation to be processed (default: 2).
+*   `min_chunk_length_chars`: Minimum character length for a source text chunk to be considered (default: 5).
+*   `data_file_name`: Name of the input JSON data file (default: "data.json", expected in `app/`).
+*   `output_file_name`: Name of the output JSON file (default: "output_validated.json", will be saved in `app/`).
 
 ## Running the Script
 

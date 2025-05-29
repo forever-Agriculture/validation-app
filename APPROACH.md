@@ -64,11 +64,10 @@ The modified records are saved to `output_validated.json`.
 
 ## 7. Potential Future Enhancements (Beyond Current Scope)
 
+*   **Add Second Layer ov Validation**: The idea is to select ambiguous and untrue citations and run them again against a different (simpler) validation layer - for example this layer could employ more direct lexical matching techniques.
 *   **Advanced Parameter Tuning**: More systematic tuning of similarity thresholds using a labeled validation set, if available.
 *   **Alternative Embedding Models**: Experimentation with larger or domain-specific embedding models if higher accuracy is required and computational resources permit.
-*   **Fine-tuning**: If a sufficiently large labeled dataset of (citation, source_chunk, is_match) tuples becomes available, fine-tuning the sentence transformer model could yield performance gains.
 *   **More Sophisticated Chunking Strategies**: If the current chunking proves insufficient for certain complex document structures, re-evaluating more advanced text segmentation techniques could be considered.
-*   **Integration of Lexical Methods**: For very short citations or specific types of factual data, combining semantic similarity with lexical methods (e.g., fuzzy matching on named entities) might be beneficial.
 
 ## 8. Potential Business Impact and Workflow Integration
 
@@ -112,4 +111,17 @@ While precise quantification requires a baseline and further testing, potential 
 *   **Percentage of Citations Auto-Verified**: Number of citations confidently marked "very likely true" that bypass intensive manual review.
 *   **Error Catch Rate**: Proportion of actual errors identified by the system (especially in "likely untrue" or "ambiguous" categories) compared to a full manual review.
 
-By implementing this system, Unicorn Nest can expect to achieve a more efficient, scalable, and reliable process for ensuring the accuracy of its cited data.
+By implementing this system, we can expect to achieve a more efficient, scalable, and reliable process for ensuring the accuracy of its cited data.
+
+## Script Configuration
+
+The validator script (`app/validator.py`) supports runtime configuration through a JSON file named `app/config.json`. This allows users to adjust key parameters without modifying the script code directly. Parameters that can be configured include:
+
+*   **`model_name`**: Specifies the sentence-transformer model.
+*   **`similarity_threshold`**: The main threshold for classifying a citation as "likely true."
+*   **`min_citation_length_words`**: Filters out very short citations.
+*   **`min_chunk_length_chars`**: Filters out very short source text chunks.
+*   **`data_file_name`**: Defines the input data file.
+*   **`output_file_name`**: Defines the output results file.
+
+If `app/config.json` is not found, or if specific parameters are missing within it, the script will fall back to predefined default values. This ensures the script can always run and provides a clear way to manage experimental settings or operational parameters.

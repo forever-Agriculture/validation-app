@@ -1,0 +1,8 @@
+{
+    "model_name": "all-MiniLM-L6-v2",
+    "similarity_threshold": 0.6,
+    "min_citation_length_words": 2,
+    "min_chunk_length_chars": 5,
+    "data_file_name": "data.json",
+    "output_file_name": "output_validated.json"
+}

@@ -1,5 +1,5 @@
 """
-Citation Validation Script
+Citation Validation Script - Project "Unicorn Nest Candidate Test"
 
 Overview:
 This script is designed to validate AI-generated citations for data entries
@@ -7,6 +7,12 @@ against a provided source text. The primary goal is to determine the likely
 veracity of a citation by measuring its semantic similarity to relevant parts
 of the source material. This helps prioritize manual data review efforts by
 flagging citations that are likely true, likely untrue, or ambiguous.
+
+Configuration:
+Key parameters for this script are managed via a `config.json` file expected
+in the same directory as the script (`app/config.json`). This includes
+model name, similarity thresholds, and input/output file names.
+Defaults are used if the config file is missing or a parameter is not specified.
 
 Methodology:
 1.  Data Loading: Loads records from a JSON file (`data.json`). Each record
@@ -68,15 +74,59 @@ import numpy as np
 from markdown_it import MarkdownIt
 from bs4 import BeautifulSoup
 
-# Get the absolute path of the directory where the script is located
 SCRIPT_DIR = Path(__file__).resolve().parent
+CONFIG_FILE_PATH = SCRIPT_DIR / "config.json"
 
-DATA_FILE_PATH = SCRIPT_DIR / "data.json"
-OUTPUT_FILE_PATH = SCRIPT_DIR / "output_validated.json" # Tentative output file name
-MODEL_NAME = 'all-MiniLM-L6-v2'
-SIMILARITY_THRESHOLD = 0.6 # Just a personal opinion
-MIN_CITATION_LENGTH_WORDS = 2 # Minimum number of words for a citation to be processed
-MIN_CHUNK_LENGTH_CHARS = 4 # Source text chunks shorter than this are ignored.
+# Default configuration values
+DEFAULT_CONFIG = {
+    "model_name": "all-MiniLM-L6-v2",
+    "similarity_threshold": 0.6,
+    "min_citation_length_words": 2,
+    "min_chunk_length_chars": 10,
+    "data_file_name": "data.json",
+    "output_file_name": "output_validated.json"
+}
+
+def load_config(config_path: Path) -> dict:
+    """
+    Loads configuration from a JSON file.
+    If the file doesn't exist or is invalid, returns default settings.
+    """
+    if config_path.exists() and config_path.is_file():
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                user_config = json.load(f)
+                # Merge user_config with defaults, user_config takes precedence
+                config = {**DEFAULT_CONFIG, **user_config} 
+                print(f"Loaded configuration from {config_path}")
+                return config
+        except json.JSONDecodeError:
+            print(f"Warning: Error decoding {config_path}. Using default settings.")
+        except Exception as e:
+            print(f"Warning: Could not load {config_path} due to {e}. Using default settings.")
+    else:
+        print(f"Warning: Config file {config_path} not found. Using default settings.")
+    return DEFAULT_CONFIG.copy() # Return a copy of defaults
+
+# Load configuration
+config = load_config(CONFIG_FILE_PATH)
+
+# File Paths (derived from config or defaults)
+DATA_FILE_PATH = SCRIPT_DIR / config.get("data_file_name", DEFAULT_CONFIG["data_file_name"])
+OUTPUT_FILE_PATH = SCRIPT_DIR / config.get("output_file_name", DEFAULT_CONFIG["output_file_name"])
+
+# Model Configuration
+MODEL_NAME = config.get("model_name", DEFAULT_CONFIG["model_name"])
+
+# Validation Logic Parameters
+SIMILARITY_THRESHOLD = config.get("similarity_threshold", DEFAULT_CONFIG["similarity_threshold"])
+MIN_CITATION_LENGTH_WORDS = config.get("min_citation_length_words", DEFAULT_CONFIG["min_citation_length_words"])
+MIN_CHUNK_LENGTH_CHARS = config.get("min_chunk_length_chars", DEFAULT_CONFIG["min_chunk_length_chars"])
+
+# Ensure types are correct after loading from JSON (JSON loads numbers as float/int)
+SIMILARITY_THRESHOLD = float(SIMILARITY_THRESHOLD)
+MIN_CITATION_LENGTH_WORDS = int(MIN_CITATION_LENGTH_WORDS)
+MIN_CHUNK_LENGTH_CHARS = int(MIN_CHUNK_LENGTH_CHARS)
 
 def load_data(file_path: str) -> list:
     """
@@ -191,8 +241,9 @@ def validate_citation_item(
         return "untrue (no source text)", 0.0
 
     try:
-        citation_embedding = model.encode(normalized_citation, convert_to_tensor=True)
-        chunk_embeddings = model.encode(source_text_chunks, convert_to_tensor=True)
+        # THIS IS THE CORE OF THE SCRIPT!
+        citation_embedding = model.encode(normalized_citation, convert_to_tensor=True) # creating vectors with the "meaning" of the citation
+        chunk_embeddings = model.encode(source_text_chunks, convert_to_tensor=True) # creating vectors with the "meaning" of the source text chunks
 
         cos_scores = util.cos_sim(citation_embedding, chunk_embeddings)[0]
         
@@ -238,12 +289,20 @@ def save_validated_data(records: list, file_path: Path):
 
 def main():
     """
-    Main function to orchestrate the validation process.
+    Main function to orchestrate the citation validation process.
+    Loads data, preprocesses text, validates citations, and saves results.
+    Uses parameters loaded from config.json or defaults.
     """
     print("Starting citation validation process...")
+    print(f"Using Model: {MODEL_NAME}")
+    print(f"Similarity Threshold: {SIMILARITY_THRESHOLD}")
+    print(f"Min Citation Words: {MIN_CITATION_LENGTH_WORDS}")
+    print(f"Min Chunk Chars: {MIN_CHUNK_LENGTH_CHARS}")
+    print(f"Data File: {DATA_FILE_PATH}")
+    print(f"Output File: {OUTPUT_FILE_PATH}")
 
     # Initialize the Sentence Transformer model
-    print(f"Loading sentence transformer model: {MODEL_NAME}...")
+    print(f"\nLoading sentence transformer model: {MODEL_NAME}...")
     try:
         model = SentenceTransformer(MODEL_NAME)
         print("Model loaded successfully.")
@@ -312,8 +371,6 @@ def main():
     # Save the updated records
     if records:
         save_validated_data(records, OUTPUT_FILE_PATH)
-
-    # print("\nValidation process stub complete.") # Remove old message
 
 if __name__ == "__main__":
     # Download necessary NLTK resources if not already present.
