@@ -1,0 +1,5 @@
+nltk
+sentence-transformers
+numpy
+markdown-it-py
+beautifulsoup4 

@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output files (you might want to commit this for the test task,
+# but often generated files are ignored)
+# output_validated.json
+# app/output_validated.json
+
+# NLTK data (if downloaded into project structure, though usually global)
+# nltk_data/
